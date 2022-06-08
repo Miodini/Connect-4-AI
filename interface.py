@@ -1,5 +1,6 @@
 import os
 import pygame as pg
+from numpy import transpose
 
 class Board:
     cells = [
@@ -22,15 +23,51 @@ class Board:
                 self.cells[i][column] = currentPlayer
                 return len(self.cells[0]) + i
         return None
-                
+
+    def checkWinner(self):
+        """Procura se há algum ganhador. Retorna True se sim, False se não."""
+        # 4 elementos na horizontal
+        for row in self.cells[:]:
+            s = ''.join(e for e in row)    # Converte a lista em string
+            if 'vvvv' in s or 'yyyy' in s:
+                return True
+        # 4 elementos na vertical
+        for col in list(transpose(self.cells[:])):
+            s = ''.join(e for e in col)    # Converte a lista em string
+            if 'vvvv' in s or 'yyyy' in s:
+                return True
+        # 4 elementos na diagonal
+        diagIndexes = (
+            # Direção nordeste-sudoeste
+            ((0,3), (1,2), (2,1), (3,0)),
+            ((0,4), (1,3), (2,2), (3,1), (4,0)),
+            ((0,5), (1,4), (2,3), (3,2), (4,1), (5,0)),
+            ((0,6), (1,5), (2,4), (3,3), (4,2), (5,1)),
+            ((1,6), (2,5), (3,4), (4,3), (5,2)),
+            ((2,6), (3,5), (4,4), (5,3)),
+            # Direção noroeste-sudeste
+            ((2,0), (3,1), (4,2), (5,3)),
+            ((1,0), (2,1), (3,2), (4,3), (5,4)),
+            ((0,0), (1,1), (2,2), (3,3), (4,4), (5,5)),
+            ((0,1), (1,2), (2,3), (3,4), (4,5), (5,6)),
+            ((0,2), (1,3), (2,4), (3,5), (4,6)),
+            ((0,3), (1,4), (2,5), (3,6))
+        )
+        for quads in diagIndexes:
+            s = ''.join(self.cells[e[0]][e[1]] for e in quads)     # Converte a lista em string
+            if 'vvvv' in s or 'yyyy' in s:
+                return True
+        return False
+
 class Game:
-    player1Turn = True  # Player 1 == True: vermelho. Player 1 == False: amarelo
     _xMargin = 5        # Tamanho da margem entre o tabuleiro e a borda da janela (eixo X)
     _topMargin = 140    # Tamanho da margem entre o tabuleiro e a borda da janela (eixo Y, cima)
     _botMargin = 84     # Tamanho da margem entre o tabuleiro e a borda da janela (eixo Y, baixo)
     _cellSize = 84      # Tamanho de cada célula. O tabuleiro é dividido em 7 células horizontais e 6 verticais.
     _sArrowHeight = 22  # Altura do arquivo de imagem da seta pequena
     _lArrowHeight = 25  # Altura do arquivo de imagem da seta grande
+    player1Turn = True  # Player 1 == True: vermelho. Player 1 == False: amarelo
+    gameOver = False
     board = Board()     # Objeto contendo as informações e métodos do tabuleiro
 
     def __init__(self, size: tuple[int]):
@@ -99,10 +136,15 @@ class Game:
                 self.redChipImg if self.player1Turn else self.yellowChipImg,
                 (self._xMargin + (self._cellSize * column), self._topMargin + (self._cellSize * positionInserted) - self._botMargin)
             )
-            self.player1Turn = not self.player1Turn     # Troca o jogador atual
-            self.genText()
+            if self.board.checkWinner():
+                mode = 'win'
+                self.gameOver = True
+            else:
+                mode = 'turn'    
+                self.player1Turn = not self.player1Turn     # Troca o jogador atual
+            self.genText(mode)
 
-    def genText(self):
+    def genText(self, mode: str):
         """Limpa a parte superior da tela e escreve o texto de jogador da vez"""
         font = pg.font.Font(None, 48)
         blankRect = pg.Rect(0, 0, self.width, self._topMargin)
@@ -113,23 +155,27 @@ class Game:
         else:
             playerName = 'amarelo'
             color = (200, 209, 23)
-
-        text = f'Vez do jogador {playerName}.'
+        if mode == 'turn':
+            text = f'Vez do jogador {playerName}.'
+            textSize = font.size(f'Vez do jogador {playerName}.')
+        elif mode == 'win':
+            text = f'Vitória do jogador {playerName}!'
+            textSize = font.size(f'Vitória do jogador {playerName}!')
+        
         textBox = font.render(text, True, color, (255, 255, 255))
-        textSize = font.size(f'Vez do jogador {playerName}.')
         self.screen.blit(textBox, (self.width/2 - textSize[0]/2, self._topMargin/2 - textSize[1]))
 
     def start(self):
         """Inicia a rotina de jogo e mantém o controle dos eventos"""
         running = True
-        self.genText()
+        self.genText('turn')
         while running:
             hoveredArrow = self.checkMouseCollision()
             pg.display.update()
             for event in pg.event.get():
                 if event.type == pg.QUIT:
                     running = False
-                if hoveredArrow != None and event.type == pg.MOUSEBUTTONUP:
+                if hoveredArrow != None and event.type == pg.MOUSEBUTTONUP and not self.gameOver:
                     self.dropChip(hoveredArrow)
 
 jogo = Game((600, 700))
