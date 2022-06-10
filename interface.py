@@ -2,15 +2,22 @@ import os
 import pygame as pg
 from numpy import transpose
 
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+LIGHT_GRAY =  (190, 190, 190)
+RED = (145, 17, 17)
+YELLOW = (200, 209, 23)
+
 class Board:
-    cells = [
-        ['0', '0', '0', '0', '0', '0', '0'],
-        ['0', '0', '0', '0', '0', '0', '0'],
-        ['0', '0', '0', '0', '0', '0', '0'],
-        ['0', '0', '0', '0', '0', '0', '0'],
-        ['0', '0', '0', '0', '0', '0', '0'],
-        ['0', '0', '0', '0', '0', '0', '0']
-    ]
+    def __init__(self):
+        self.cells = [
+            ['0', '0', '0', '0', '0', '0', '0'],
+            ['0', '0', '0', '0', '0', '0', '0'],
+            ['0', '0', '0', '0', '0', '0', '0'],
+            ['0', '0', '0', '0', '0', '0', '0'],
+            ['0', '0', '0', '0', '0', '0', '0'],
+            ['0', '0', '0', '0', '0', '0', '0']
+        ]
 
     def targetRow(self, column: int, currentPlayer: str):
         """
@@ -64,29 +71,35 @@ class Game:
     _topMargin = 140    # Tamanho da margem entre o tabuleiro e a borda da janela (eixo Y, cima)
     _botMargin = 84     # Tamanho da margem entre o tabuleiro e a borda da janela (eixo Y, baixo)
     _cellSize = 84      # Tamanho de cada célula. O tabuleiro é dividido em 7 células horizontais e 6 verticais.
-    _sArrowHeight = 22  # Altura do arquivo de imagem da seta pequena
-    _lArrowHeight = 25  # Altura do arquivo de imagem da seta grande
     player1Turn = True  # Player 1 == True: vermelho. Player 1 == False: amarelo
     gameOver = False
     board = Board()     # Objeto contendo as informações e métodos do tabuleiro
 
     def __init__(self, size: tuple[int]):
-        self.width, self.height = size
         pg.init()
         pg.display.set_caption('Connect 4')
         self.screen = pg.display.set_mode(size)
-        self.screen.fill((255, 255, 255))
+        self.screen.fill(WHITE)
 
-        boardImg = pg.image.load(os.path.join('img', 'board.png')).convert_alpha()
-        self.screen.blit(boardImg, (self._xMargin, self._topMargin))
+        self.width, self.height = size
+        self.turns = 0
+        self.imgs = {
+            'board': pg.image.load(os.path.join('img', 'board.png')).convert_alpha(),       # Tabuleiro
+            'sArrow': pg.image.load(os.path.join('img', 'arrow_s.png')).convert_alpha(),    # Seta pequenoa
+            'lArrow': pg.image.load(os.path.join('img', 'arrow_l.png')).convert_alpha(),    # Seta grande
+            'yChip': pg.image.load(os.path.join('img', 'chip_y.png')).convert_alpha(),      # Ficha amarela
+            'rChip': pg.image.load(os.path.join('img', 'chip_r.png')).convert_alpha()       # Ficha vermelha
+        }
+        self.rects = {
+            'sArrows': [],   # Pequeno
+            'lArrows': [],    # Grande
+            'rstButtom': None
+        }
 
-        self.arrowsPos = []
-        self.yellowChipImg = pg.image.load(os.path.join('img', 'chip_y.png')).convert_alpha()
-        self.redChipImg = pg.image.load(os.path.join('img', 'chip_r.png')).convert_alpha()
-        self.smallArrowImg = pg.image.load(os.path.join('img', 'arrow_s.png')).convert_alpha()
-        self.bigArrowImg = pg.image.load(os.path.join('img', 'arrow_l.png')).convert_alpha()
+        self.screen.blit(self.imgs['board'], (self._xMargin, self._topMargin))
         for i in range(7):      # 7 colunas
-            self.arrowsPos.append((i*self._cellSize + self._xMargin, 110))
+            self.rects['sArrows'].append(pg.Rect(i*self._cellSize + self._xMargin + 10, 110, self.imgs['sArrow'].get_width(), self.imgs['sArrow'].get_height()))
+            self.rects['lArrows'].append(pg.Rect(i*self._cellSize + self._xMargin, 110, self.imgs['lArrow'].get_width(), self.imgs['lArrow'].get_height()))
             self.drawArrow(i, 'small')        
 
     def drawArrow(self, column: int, arrowType: str):
@@ -94,14 +107,12 @@ class Game:
         Desenha a uma flecha na coluna 'column'.
         'arrowType' deve ser "small" ou "big" para uma flecha pequena ou grande
         """
-        xPos = self.arrowsPos[column][0]
-        yPos = self.arrowsPos[column][1]
-        blankRect = pg.Rect(xPos, yPos, self._cellSize, self._lArrowHeight)
-        pg.draw.rect(self.screen, (255, 255, 255), blankRect)   # Limpa a flecha antiga
+        # Diferença das dimensões das flechas grandes e pequenas nas duas dimensões
+        pg.draw.rect(self.screen, WHITE, self.rects['lArrows'][column])   # Limpa a flecha antiga
         if arrowType == 'small':
-            self.screen.blit(self.smallArrowImg, (xPos + 10, yPos)) # Cada flecha pequena é 10px menor que cada célula em cada lado
+            self.screen.blit(self.imgs['sArrow'], self.rects['sArrows'][column]) 
         elif arrowType == 'big':
-            self.screen.blit(self.bigArrowImg, (xPos, yPos)) # Cada flecha pequena é 10px menor que cada célula em cada lado
+            self.screen.blit(self.imgs['lArrow'], self.rects['lArrows'][column])
 
     def checkMouseCollision(self):
         """ 
@@ -109,18 +120,23 @@ class Game:
         Se sim, redesenha a seta sobreposta para uma maior, muda o cursor para "mão" e retorna a coluna da seta (começando em 0).
         Se não, muda o cursor para flecha e retorna None.
         """
-        arrowsDownRightPos = list(map(lambda t: (t[0] + self._cellSize, t[1] + self._sArrowHeight), self.arrowsPos)) # Calcula a posição inferior direita de cada flecha
-    
         mousePos = pg.mouse.get_pos()
-        hovering = None    # Para determinar se o cursor deve mudar ou não
-        for i in range(len(self.arrowsPos)):
-            if mousePos[0] > self.arrowsPos[i][0] and mousePos[1] > self.arrowsPos[i][1] and mousePos[0] < arrowsDownRightPos[i][0] and mousePos[1] < arrowsDownRightPos[i][1]:
+        hovering = {'arrow': None, 'reset': False}    # Para determinar se o cursor deve mudar ou não
+        # Setas
+        for [i, arrow] in enumerate(self.rects['sArrows']):
+            if arrow.collidepoint(mousePos):
                 pg.mouse.set_cursor(pg.SYSTEM_CURSOR_HAND)
-                hovering = i
+                hovering['arrow'] = i
                 self.drawArrow(i, 'big')
             else:
                 self.drawArrow(i, 'small')
-        if hovering == None: 
+        # Botão de reset
+        if self.gameOver:
+            if self.rects['rstButtom'].collidepoint(mousePos):
+                pg.mouse.set_cursor(pg.SYSTEM_CURSOR_HAND)
+                hovering['reset'] = True
+
+        if hovering['arrow'] == None and not hovering['reset']: 
             pg.mouse.set_cursor(pg.SYSTEM_CURSOR_ARROW)
         return hovering
 
@@ -132,37 +148,64 @@ class Game:
         """
         positionInserted = self.board.targetRow(column, 'v' if self.player1Turn else 'y')
         if positionInserted != None:
+            self.turns += 1
             self.screen.blit(
-                self.redChipImg if self.player1Turn else self.yellowChipImg,
+                self.imgs['rChip'] if self.player1Turn else self.imgs['yChip'],
                 (self._xMargin + (self._cellSize * column), self._topMargin + (self._cellSize * positionInserted) - self._botMargin)
             )
             if self.board.checkWinner():
                 mode = 'win'
                 self.gameOver = True
+            elif self.turns >= 42:
+                mode = 'draw'
+                self.gameOver = True
             else:
                 mode = 'turn'    
                 self.player1Turn = not self.player1Turn     # Troca o jogador atual
             self.genText(mode)
+            
 
     def genText(self, mode: str):
-        """Limpa a parte superior da tela e escreve o texto de jogador da vez"""
+        """
+        Limpa a parte superior da tela e escreve o texto informativo na tela
+        'mode' = "turn" | "win" | "draw"
+        Para os modos win e draw, também gera um botão de reiniciar jogo
+        """
         font = pg.font.Font(None, 48)
         blankRect = pg.Rect(0, 0, self.width, self._topMargin)
-        pg.draw.rect(self.screen, (255, 255, 255), blankRect)
+        pg.draw.rect(self.screen, WHITE, blankRect)
         if self.player1Turn:
             playerName = 'vermelho'
-            color = (145, 17, 17)
+            color = RED
         else:
             playerName = 'amarelo'
-            color = (200, 209, 23)
+            color = YELLOW
+        
         if mode == 'turn':
             text = f'Vez do jogador {playerName}.'
             textSize = font.size(f'Vez do jogador {playerName}.')
-        elif mode == 'win':
-            text = f'Vitória do jogador {playerName}!'
-            textSize = font.size(f'Vitória do jogador {playerName}!')
-        
-        textBox = font.render(text, True, color, (255, 255, 255))
+        else:
+            # Botão de reset
+            rstFont = pg.font.Font(None, 36)
+            rstText = 'Reiniciar'
+            rstTextSize = rstFont.size('Reiniciar')
+            rstTextBox = rstFont.render(rstText, True, BLACK, LIGHT_GRAY)
+            self.rects['rstButtom'] = pg.Rect(
+                self.width/2 - rstTextSize[0]/2,
+                self._topMargin/2 - rstTextSize[1] + 25,
+                rstTextSize[0],
+                rstTextSize[1]
+            )
+            if mode == 'win': 
+                text = f'Vitória do jogador {playerName}!'
+                textSize = font.size(f'Vitória do jogador {playerName}!')
+            elif mode == 'draw':
+                text = 'Empate!'
+                textSize = font.size('Empate!')
+                color = BLACK
+            self.screen.blit(rstTextBox, self.rects['rstButtom'])
+
+        textBox = font.render(text, True, color, WHITE)
         self.screen.blit(textBox, (self.width/2 - textSize[0]/2, self._topMargin/2 - textSize[1]))
 
     def start(self):
@@ -170,13 +213,25 @@ class Game:
         running = True
         self.genText('turn')
         while running:
-            hoveredArrow = self.checkMouseCollision()
+            hovering = self.checkMouseCollision()
             pg.display.update()
             for event in pg.event.get():
                 if event.type == pg.QUIT:
                     running = False
-                if hoveredArrow != None and event.type == pg.MOUSEBUTTONUP and not self.gameOver:
-                    self.dropChip(hoveredArrow)
+                if event.type == pg.MOUSEBUTTONUP and hovering['arrow'] != None and not self.gameOver:
+                    self.dropChip(hovering['arrow'])
+                if event.type == pg.MOUSEBUTTONUP and hovering['reset']:
+                    self.restart()
+    
+    def restart(self):
+        """Retorna o jogo ao estado inicial"""
+        self.gameOver = False
+        self.player1Turn = True
+        self.turns = 0
+        self.board = Board()    # Limpar o tabuleiro == criar outro
+        self.screen.fill(WHITE)
+        self.screen.blit(self.imgs['board'], (self._xMargin, self._topMargin))
+        self.genText('turn')
 
 jogo = Game((600, 700))
 jogo.start()
