@@ -1,70 +1,12 @@
 import os
 import pygame as pg
-from numpy import transpose
+from board import Board
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 LIGHT_GRAY =  (190, 190, 190)
 RED = (145, 17, 17)
 YELLOW = (200, 209, 23)
-
-class Board:
-    def __init__(self):
-        self.cells = [
-            ['0', '0', '0', '0', '0', '0', '0'],
-            ['0', '0', '0', '0', '0', '0', '0'],
-            ['0', '0', '0', '0', '0', '0', '0'],
-            ['0', '0', '0', '0', '0', '0', '0'],
-            ['0', '0', '0', '0', '0', '0', '0'],
-            ['0', '0', '0', '0', '0', '0', '0']
-        ]
-
-    def targetRow(self, column: int, currentPlayer: str):
-        """
-        Procura a primeira posição livre (de baixo pra cima) na coluna 'column'.
-        Altera o atributo 'cells' para constar que a posição encontrada está ocupada pelo jogador 'currentPlayer'.
-        Retorna o índice da posição ou None caso a coluna esteja cheia.
-        """
-        for i in range(-1, -len(self.cells[0]), -1):    # Itera de baixo pra cima
-            if self.cells[i][column] == '0':
-                self.cells[i][column] = currentPlayer
-                return len(self.cells[0]) + i
-        return None
-
-    def checkWinner(self):
-        """Procura se há algum ganhador. Retorna True se sim, False se não."""
-        # 4 elementos na horizontal
-        for row in self.cells[:]:
-            s = ''.join(e for e in row)    # Converte a lista em string
-            if 'vvvv' in s or 'yyyy' in s:
-                return True
-        # 4 elementos na vertical
-        for col in list(transpose(self.cells[:])):
-            s = ''.join(e for e in col)    # Converte a lista em string
-            if 'vvvv' in s or 'yyyy' in s:
-                return True
-        # 4 elementos na diagonal
-        diagIndexes = (
-            # Direção nordeste-sudoeste
-            ((0,3), (1,2), (2,1), (3,0)),
-            ((0,4), (1,3), (2,2), (3,1), (4,0)),
-            ((0,5), (1,4), (2,3), (3,2), (4,1), (5,0)),
-            ((0,6), (1,5), (2,4), (3,3), (4,2), (5,1)),
-            ((1,6), (2,5), (3,4), (4,3), (5,2)),
-            ((2,6), (3,5), (4,4), (5,3)),
-            # Direção noroeste-sudeste
-            ((2,0), (3,1), (4,2), (5,3)),
-            ((1,0), (2,1), (3,2), (4,3), (5,4)),
-            ((0,0), (1,1), (2,2), (3,3), (4,4), (5,5)),
-            ((0,1), (1,2), (2,3), (3,4), (4,5), (5,6)),
-            ((0,2), (1,3), (2,4), (3,5), (4,6)),
-            ((0,3), (1,4), (2,5), (3,6))
-        )
-        for quads in diagIndexes:
-            s = ''.join(self.cells[e[0]][e[1]] for e in quads)     # Converte a lista em string
-            if 'vvvv' in s or 'yyyy' in s:
-                return True
-        return False
 
 class Game:
     _xMargin = 5        # Tamanho da margem entre o tabuleiro e a borda da janela (eixo X)
@@ -140,13 +82,13 @@ class Game:
             pg.mouse.set_cursor(pg.SYSTEM_CURSOR_ARROW)
         return hovering
 
-    def dropChip(self, column):
+    def dropChip(self, column: int):
         """
         Insere uma ficha na coluna 'column' na linha vazia mais a baixo.
         Não faz nada se não tiver espaço vazio na coluna.
         Muda o jogador atual e chama o método de reescrever o texto.
         """
-        positionInserted = self.board.targetRow(column, 'v' if self.player1Turn else 'y')
+        positionInserted = self.board.dropChip(column, 'r' if self.player1Turn else 'y')
         if positionInserted != None:
             self.turns += 1
             self.screen.blit(
