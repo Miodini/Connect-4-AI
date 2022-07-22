@@ -47,12 +47,12 @@ class Board:
         # 4 elementos na horizontal
         for row in self.cells[:]:
             s = ''.join(e for e in row)    # Converte a lista em string
-            if 'vvvv' in s or 'yyyy' in s:
+            if 'rrrr' in s or 'yyyy' in s:
                 return True
         # 4 elementos na vertical
         for col in list(transpose(self.cells[:])):
             s = ''.join(e for e in col)    # Converte a lista em string
-            if 'vvvv' in s or 'yyyy' in s:
+            if 'rrrr' in s or 'yyyy' in s:
                 return True
         # 4 elementos na diagonal
         diagIndexes = (
@@ -73,6 +73,6 @@ class Board:
         )
         for quads in diagIndexes:
             s = ''.join(self.cells[e[0]][e[1]] for e in quads)     # Converte a lista em string
-            if 'vvvv' in s or 'yyyy' in s:
+            if 'rrrr' in s or 'yyyy' in s:
                 return True
         return False
