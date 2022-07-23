@@ -3,6 +3,12 @@ import copy
 
 class Board:
     def __init__(self, cells: list[list[str]] = None):
+        """
+        Parameters
+        ----------
+        cells : list[list[str]], optional
+            Valor inicial das células do tabuleirio. Se não fornecida, será criado um tabuleiro vazio
+        """
         self.nRows = 6      # Apenas para informação externa...
         self.nCols = 7      # ...não são usados internamente pela classe 
         if cells is None:
@@ -18,10 +24,13 @@ class Board:
             self.cells = cells
         
     def dropChip(self, column: int, currentPlayer: str):
-        """
-        Procura a primeira posição livre (de baixo pra cima) na coluna 'column'.
+        """Procura a primeira posição livre (de baixo pra cima) na coluna 'column'.
         Altera o atributo 'cells' para constar que a posição encontrada está ocupada pelo jogador 'currentPlayer'.
-        Retorna o índice da posição ou None caso a coluna esteja cheia.
+
+        Returns
+        -------
+        int | None
+            Índice da posição ou None caso a coluna esteja cheia.
         """
         for i in range(-1, -len(self.cells[0]), -1):    # Itera de baixo pra cima
             if self.cells[i][column] == '0':
@@ -30,10 +39,12 @@ class Board:
         return None
 
     def simDropChip(self, column: int, currentPlayer: str):
-        """
-        Procura a primeira posição livre (de baixo pra cima) na coluna 'column'.
-        Retorna o uma cópia de Board.cells (sem alterá-la) após a inserção da ficha
-        ou None caso a coluna esteja cheia.
+        """Procura a primeira posição livre (de baixo pra cima) na coluna 'column'.
+        
+        Returns
+        -------
+        object | None
+            Retorna uma cópia de Board.cells (sem alterá-la) após a inserção da ficha ou None caso a coluna esteja cheia.
         """
         for i in range(-1, -len(self.cells[0]), -1):    # Itera de baixo pra cima
             if self.cells[i][column] == '0':
@@ -43,14 +54,20 @@ class Board:
         return None
 
     def checkWinner(self):
-        """Procura se há algum ganhador. Retorna True se sim, False se não."""
+        """Procura se há algum ganhador. 
+        
+        Returns
+        -------
+        bool
+            True se houve algum ganhador, False se não.
+        """
         # 4 elementos na horizontal
-        for row in self.cells[:]:
+        for row in self.cells:
             s = ''.join(e for e in row)    # Converte a lista em string
             if 'rrrr' in s or 'yyyy' in s:
                 return True
         # 4 elementos na vertical
-        for col in list(transpose(self.cells[:])):
+        for col in list(transpose(self.cells)):
             s = ''.join(e for e in col)    # Converte a lista em string
             if 'rrrr' in s or 'yyyy' in s:
                 return True
@@ -76,3 +93,17 @@ class Board:
             if 'rrrr' in s or 'yyyy' in s:
                 return True
         return False
+
+    def getTotalChips(self):
+        """
+        Returns
+        -------
+        int
+            Quantidade de fichas presentes no tabuleiro.
+        """
+        total = 0
+        for row in self.cells:
+            for cell in row:
+                if cell != '0':
+                    total += 1
+        return total
