@@ -209,10 +209,10 @@ class Board:
             score += 100
         # Se a IA ganhou
         elif isAIsTurn and win:
-            score += 1000000
+            score += 1000
         # Se a IA perdeu
         elif not isAIsTurn and win:
-            score -= 5000
+            score -= 1000
         else:
             score += self.checkAlmostWin(2 if isAIsTurn else 1)
         
