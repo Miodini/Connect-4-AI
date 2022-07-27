@@ -3,7 +3,7 @@ from board import Board
 import random
 
 MAX_DEPTH = 4
-def minimax(board: object):
+def minimax(board: object, aiChipNum: int, otherChipNum: int):
     # Raíz sempre será o jogador MAX
     score = -inf
     alpha = -inf
@@ -16,9 +16,9 @@ def minimax(board: object):
 
     bestPlay = random.choice(freeCols)
     for i in freeCols:
-        cells = board.simDropChip(i, 2)
+        cells = board.simDropChip(i, aiChipNum)
         newBoard = Board(cells)
-        newScore = _minimaxRecursion(newBoard, 0, True, alpha, beta)    # IA é o player 2
+        newScore = _minimaxRecursion(newBoard, 0, True, alpha, beta, aiChipNum, otherChipNum)    # IA é o player 2
         # MAX
         if newScore > score:
             score = newScore
@@ -29,7 +29,7 @@ def minimax(board: object):
             break
     return bestPlay
 
-def _minimaxRecursion(board: object, depth: int, isAIsTurn: bool, alpha: float, beta: float):
+def _minimaxRecursion(board: object, depth: int, isAIsTurn: bool, alpha: float, beta: float, aiChipNum: int, otherChipNum: int):
     ## Condições de parada
     # Vitória de alguém -> Interrompe a busca
     if board.checkWinner():
@@ -49,9 +49,9 @@ def _minimaxRecursion(board: object, depth: int, isAIsTurn: bool, alpha: float, 
     else:           # MIN
         score = inf
     for i in freeCols:
-        cells = board.simDropChip(i, 2 if isAIsTurn else 1)
+        cells = board.simDropChip(i, aiChipNum if isAIsTurn else otherChipNum)
         newBoard = Board(cells)
-        newScore = _minimaxRecursion(newBoard, depth + 1, isAIsTurn, alpha, beta)    # Alterna entre os jogadores red e yellow
+        newScore = _minimaxRecursion(newBoard, depth + 1, isAIsTurn, alpha, beta, aiChipNum, otherChipNum)    # Alterna entre os jogadores red e yellow
         
         # Jogador MAX
         if isAIsTurn: 

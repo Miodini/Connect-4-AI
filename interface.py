@@ -1,4 +1,4 @@
-import os
+import os, sys, random
 import pygame as pg
 from board import Board
 from playerAI import minimax
@@ -157,7 +157,7 @@ class Game:
         while running:
             pg.display.update()
             if not self.player1Turn and not self.gameOver:
-                col = minimax(self.board)
+                col = minimax(self.board, 2, 1)
                 self.dropChip(col)
             hovering = self.checkMouseCollision()
             for event in pg.event.get():
@@ -168,15 +168,51 @@ class Game:
                 if event.type == pg.MOUSEBUTTONUP and hovering['reset']:
                     self.restart()
     
-    def restart(self):
+    def startAuto(self):
+        """Inicia a rotina de jogo para duas IAs"""
+        running = True
+        self.genText('turn')
+        # Aleatoriza a primeira jogada de cada IA
+        self.dropChip(random.randrange(0, self.board.nCols))
+        self.dropChip(random.randrange(0, self.board.nCols))
+        while running:
+            pg.display.update()
+            if self.player1Turn and not self.gameOver:
+                col = minimax(self.board, 1, 2)
+                self.dropChip(col)
+            pg.display.update()
+            if not self.player1Turn and not self.gameOver:
+                col = minimax(self.board, 2, 1)
+                self.dropChip(col)
+            hovering = self.checkMouseCollision()
+            for event in pg.event.get():
+                if event.type == pg.QUIT:
+                    running = False
+                if event.type == pg.MOUSEBUTTONUP and hovering['reset']:
+                    self.restart(autoMode=True)
+
+    def restart(self, *, autoMode = False):
         """Retorna o jogo ao estado inicial"""
-        self.gameOver = False
         self.player1Turn = True
         self.turns = 0
         self.board = Board()    # Limpar o tabuleiro == criar outro
         self.screen.fill(WHITE)
         self.screen.blit(self.imgs['board'], (self._xMargin, self._topMargin))
         self.genText('turn')
+        if(autoMode):
+            # Aleatoriza a primeira jogada de cada IA
+            self.dropChip(random.randrange(0, self.board.nCols))
+            self.dropChip(random.randrange(0, self.board.nCols))
+        self.gameOver = False
+
+autoMode = False
+if len(sys.argv) > 1:
+    for arg in sys.argv:
+        if arg.startswith('-auto'):
+            autoMode = True
 
 jogo = Game((600, 700))
-jogo.start()
+if autoMode:
+    jogo.startAuto()
+else:
+    jogo.start()
