@@ -1,6 +1,7 @@
 import os
 import pygame as pg
 from board import Board
+from playerAI import minimax
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -37,7 +38,6 @@ class Game:
             'lArrows': [],    # Grande
             'rstButtom': None
         }
-
         self.screen.blit(self.imgs['board'], (self._xMargin, self._topMargin))
         for i in range(7):      # 7 colunas
             self.rects['sArrows'].append(pg.Rect(i*self._cellSize + self._xMargin + 10, 110, self.imgs['sArrow'].get_width(), self.imgs['sArrow'].get_height()))
@@ -65,7 +65,7 @@ class Game:
         mousePos = pg.mouse.get_pos()
         hovering = {'arrow': None, 'reset': False}    # Para determinar se o cursor deve mudar ou não
         # Setas
-        for [i, arrow] in enumerate(self.rects['sArrows']):
+        for i, arrow in enumerate(self.rects['sArrows']):
             if arrow.collidepoint(mousePos):
                 pg.mouse.set_cursor(pg.SYSTEM_CURSOR_HAND)
                 hovering['arrow'] = i
@@ -88,7 +88,7 @@ class Game:
         Não faz nada se não tiver espaço vazio na coluna.
         Muda o jogador atual e chama o método de reescrever o texto.
         """
-        positionInserted = self.board.dropChip(column, 'r' if self.player1Turn else 'y')
+        positionInserted = self.board.dropChip(column, 1 if self.player1Turn else 2)
         if positionInserted != None:
             self.turns += 1
             self.screen.blit(
@@ -155,12 +155,15 @@ class Game:
         running = True
         self.genText('turn')
         while running:
+            if not self.player1Turn and not self.gameOver:
+                col = minimax(self.board)
+                self.dropChip(col)
             hovering = self.checkMouseCollision()
             pg.display.update()
             for event in pg.event.get():
                 if event.type == pg.QUIT:
                     running = False
-                if event.type == pg.MOUSEBUTTONUP and hovering['arrow'] != None and not self.gameOver:
+                if event.type == pg.MOUSEBUTTONUP and hovering['arrow'] != None and self.player1Turn and not self.gameOver:
                     self.dropChip(hovering['arrow'])
                 if event.type == pg.MOUSEBUTTONUP and hovering['reset']:
                     self.restart()
