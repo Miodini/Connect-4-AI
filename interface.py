@@ -155,11 +155,11 @@ class Game:
         running = True
         self.genText('turn')
         while running:
+            pg.display.update()
             if not self.player1Turn and not self.gameOver:
                 col = minimax(self.board)
                 self.dropChip(col)
             hovering = self.checkMouseCollision()
-            pg.display.update()
             for event in pg.event.get():
                 if event.type == pg.QUIT:
                     running = False

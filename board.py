@@ -33,7 +33,7 @@ class Board:
         for i in range(-1, -self.nRows - 1, -1):    # Itera de baixo pra cima
             if self.cells[i][column] == 0:
                 self.cells[i][column] = currentPlayer
-                return len(self.cells[0]) + i
+                return self.nRows + 1 + i
 
     def simDropChip(self, column: int, currentPlayer: str):
         """Procura a primeira posição livre (de baixo pra cima) na coluna 'column'.
@@ -98,6 +98,89 @@ class Board:
                     total += 1
         return total
 
+    def checkAlmostWin(self, chipNum):
+        # Calcula os pontos em situação de quase vitória
+        # 3 elementos na horizontal
+        score = 0
+        for i in range(self.nRows):
+            chips = 0
+            for j in range(self.nCols - 3):
+                if self.cells[i][j] == chipNum:
+                    chips += 1
+                if self.cells[i][j+1] == chipNum:
+                    chips += 1
+                if self.cells[i][j+2] == chipNum:
+                    chips += 1
+                if self.cells[i][j+3] == chipNum:
+                    chips += 1
+                if chips == 3:
+                   # Analizando jogada da IA
+                    if chipNum == 2:
+                        score += 30
+                    # Analizando jogada do humano
+                    else:
+                        score -= 30
+
+        # 3 elementos na vertical
+        for i in range(self.nRows - 3):
+            chips = 0
+            for j in range(self.nCols):
+                if self.cells[i][j] == chipNum:
+                    chips += 1
+                if self.cells[i+1][j] == chipNum:
+                    chips += 1
+                if self.cells[i+2][j] == chipNum:
+                    chips += 1
+                if self.cells[i+3][j] == chipNum:
+                    chips += 1
+                if chips == 3:
+                   # Analizando jogada da IA
+                    if chipNum == 2:
+                        score += 30
+                    # Analizando jogada do humano
+                    else:
+                        score -= 30
+
+        # 3 elementos na diagonal
+        for i in range(self.nRows - 3):
+            chips = 0
+            for j in range(self.nCols - 3):
+                if self.cells[i][j] == chipNum:
+                    chips += 1
+                if self.cells[i+1][j+1] == chipNum:
+                    chips += 1
+                if self.cells[i+2][j+2] == chipNum:
+                    chips += 1
+                if self.cells[i+3][j+3] == chipNum:
+                    chips += 1
+                if chips == 3:
+                   # Analizando jogada da IA
+                    if chipNum == 2:
+                        score += 30
+                    # Analizando jogada do humano
+                    else:
+                        score -= 30
+
+        for i in range(3, self.nRows):
+            chips = 0
+            for j in range(self.nCols - 3):
+                if self.cells[i][j] == chipNum:
+                    chips += 1
+                if self.cells[i-1][j+1] == chipNum:
+                    chips += 1
+                if self.cells[i-2][j+2] == chipNum:
+                    chips += 1
+                if self.cells[i-3][j+3] == chipNum:
+                    chips += 1
+                if chips == 3:
+                   # Analizando jogada da IA
+                    if chipNum == 2:
+                        score += 30
+                    # Analizando jogada do humano
+                    else:
+                        score -= 30              
+        return score
+
     def getFreeColumns(self):
         indexes = []
         # Itera sobre as colunas
@@ -126,73 +209,12 @@ class Board:
             score += 100
         # Se a IA ganhou
         elif isAIsTurn and win:
-            score += 1000
+            score += 1000000
         # Se a IA perdeu
         elif not isAIsTurn and win:
-            score -= 10000
+            score -= 5000
         else:
-            # 3 elementos na horizontal
-            for i in range(self.nRows):
-                for j in range(self.nCols - 2):
-                    if self.cells[i][j] == self.cells[i][j+1] == self.cells[i][j+2] and self.cells[i][j] != 0:
-                        if self.cells[i][j] == 2:
-                            score += 30
-                        else:
-                            score -= 20
-            # 3 elementos na vertical
-            for i in range(self.nRows - 2):
-                for j in range(self.nCols):
-                    if self.cells[i][j] == self.cells[i+1][j] == self.cells[i+2][j] and self.cells[i][j] != 0:
-                        if self.cells[i][j] == 2:
-                            score += 30
-                        else:
-                            score -= 20
-            # 3 elementos na diagonal
-            for i in range(self.nRows - 2):
-                for j in range(self.nCols - 2):
-                    if self.cells[i][j] == self.cells[i+1][j+1] == self.cells[i+2][j+2] and self.cells[i][j] != 0:
-                        if self.cells[i][j] == 2:
-                            score += 30
-                        else:
-                            score -= 20
-            for i in range(2, self.nRows):
-                for j in range(self.nCols - 2):
-                    if self.cells[i][j] == self.cells[i-1][j+1] == self.cells[i-2][j+2] and self.cells[i][j] != 0:
-                        if self.cells[i][j] == 2:
-                            score += 30
-                        else:
-                            score -= 20
-            # 2 elementos na horizontal
-            for i in range(self.nRows):
-                for j in range(self.nCols - 1):
-                    if self.cells[i][j] == self.cells[i][j+1] and self.cells[i][j] != 0:
-                        if self.cells[i][j] == 2:
-                            score += 5
-                        else:
-                            score -= 2
-            # 2 elementos na vertical
-            for i in range(self.nRows - 1):
-                for j in range(self.nCols):
-                    if self.cells[i][j] == self.cells[i+1][j] and self.cells[i][j] != 0:
-                        if self.cells[i][j] == 2:
-                            score += 5
-                        else:
-                            score -= 2
-            # 2 elementos na diagonal
-            for i in range(self.nRows - 1):
-                for j in range(self.nCols - 1):
-                    if self.cells[i][j] == self.cells[i+1][j+1] and self.cells[i][j] != 0:
-                        if self.cells[i][j] == 2:
-                            score += 5
-                        else:
-                            score -= 2
-            for i in range(1, self.nRows):
-                for j in range(self.nCols - 1):
-                    if self.cells[i][j] == self.cells[i-1][j+1] and self.cells[i][j] != 0:
-                        if self.cells[i][j] == 2:
-                            score += 5
-                        else:
-                            score -= 2                
+            score += self.checkAlmostWin(2 if isAIsTurn else 1)
         
         score -= self.getTotalChips()     # Quanto mais turnos tiver passado, menor a pontuação
         return score
