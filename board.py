@@ -4,12 +4,18 @@ import numpy as np
 # Player 2 = Yellow
 
 class Board:
-    def __init__(self, cells = None, nRows: int = 6, nCols: int = 7):
+    """Representa o tabuleiro e seus métodos de modificação/verificação."""
+    def __init__(self, cells = None, nRows = 6, nCols = 7):
         """
         Parameters
         ----------
-        cells : list[list[str]], optional
-            Valor inicial das células do tabuleirio. Se não fornecida, será criado um tabuleiro vazio
+        cells: numpy.2darray, optional
+            Valor inicial das células do tabuleirio. Se não fornecida, será criado um tabuleiro vazio.
+            Deve ter as dimensões nRows x nCols.
+        nRows: int, default 6
+            Número de linhas do tabuleiro.
+        nCols: int, default 7
+            Número de colunas do tabuleiro.
         """
         self.nRows = nRows 
         self.nCols = nCols  
@@ -21,7 +27,15 @@ class Board:
     def dropChip(self, column, currentPlayer):
         """Procura a primeira posição livre (de baixo pra cima) na coluna 'column'.
         Altera o atributo 'cells' para constar que a posição encontrada está ocupada pelo jogador 'currentPlayer'.
-
+        Caso a coluna esteja cheia, não altera o tabuleiro.
+        
+        Parameters
+        ----------
+        column: int
+            Índice da coluna onde será inserido a ficha.
+        currentPlayer: int
+            Número representando o jogador atual (1 -> vermelho, 2 -> amarelo).
+            
         Returns
         -------
         int | None
@@ -35,12 +49,20 @@ class Board:
                 self.cells[i][column] = currentPlayer
                 return self.nRows + 1 + i
 
-    def simDropChip(self, column: int, currentPlayer: str):
+    def simDropChip(self, column, currentPlayer):
         """Procura a primeira posição livre (de baixo pra cima) na coluna 'column'.
-        
+        Retorna uma cópia de 'cells' com a posição encontrada ocupada pelo jogador 'currentPlayer'.
+       
+       Parameters
+        ----------
+        column: int
+            Índice da coluna onde será inserido a ficha.
+        currentPlayer: int
+            Número representando o jogador atual (1 -> vermelho, 2 -> amarelo).
+            
         Returns
         -------
-        tuple | None
+        numpy.2darray | None
             Retorna uma cópia de Board.cells (sem alterá-la) após a inserção da ficha ou None caso a coluna esteja cheia.
         """
         for i in range(-1, -self.nRows - 1, -1):    # Itera de baixo pra cima
@@ -56,7 +78,7 @@ class Board:
         return None
 
     def checkWinner(self):
-        """Procura se há algum ganhador. 
+        """Procura se há algum ganhador no jogo. 
         
         Returns
         -------
@@ -85,7 +107,8 @@ class Board:
         return False
 
     def getTotalChips(self):
-        """
+        """Calcula o total de fichas presentes no tabuleiro.
+        
         Returns
         -------
         int
@@ -99,7 +122,21 @@ class Board:
         return total
 
     def checkAlmostWin(self, chipNum):
-        # Calcula os pontos em situação de quase vitória
+        """Calcula os pontos em situação de quase vitória.
+        Uma condição de quase vitória ocorre caso haja 3 fichas de mesmo cor em um grupo de 4 células na horizontal/vertical/horizontal.
+        Quase vitórias para o jogador atual resultam em pontos positivos. Para o jogador adversário, resultam em pontos negativos.
+        Caso haja mais de uma condição de quase vitória, a pontuação total é acumulada.
+        
+        Parameters
+        ----------
+        chipNum: int
+            Número da ficha do jogador atual.
+            
+        Returns
+        -------
+        int
+            Pontuação do jogador na rodada.
+        """
         # 3 elementos na horizontal
         score = 0
         for i in range(self.nRows):
@@ -182,6 +219,12 @@ class Board:
         return score
 
     def getFreeColumns(self):
+        """Retorna as colunas que não estão cheias.
+        
+        Returns
+        -------
+        list[int]
+        """
         indexes = []
         # Itera sobre as colunas
         for i, col in enumerate(list(np.transpose(self.cells))):
@@ -196,12 +239,14 @@ class Board:
         isAIsTurn : bool
             Se True, é a vez do jogador 1. Se False, é a vez do jogador 2 (para determinar se a IA venceu ou perdeu)
 
-        draw : bool, optional
-            Se True, significa que houve empate
+        draw: bool, optional
+            Se True, significa que houve empate na rodada.
+        win: bool, optional
+            Se True, significa que houve vitória na rodada.
         Returns
         -------
         int
-            pontuação da função de utilidade (quanto maior, melhor)
+            Pontuação da função de utilidade (quanto maior, melhor)
         """
         score = 0
         # Se empate
