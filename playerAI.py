@@ -72,15 +72,15 @@ def _minimaxRecursion(board: object, depth: int, isAIsTurn: bool, alpha: float, 
     ## Condições de parada ##########################
     # Vitória de alguém -> Interrompe a busca
     if board.checkWinner():
-        return board.getScore(isAIsTurn, win = True)
+        return board.getScore(isAIsTurn, aiChipNum, win = True)
 
     freeCols = board.getFreeColumns()
     # Empate -> Interrompe a busca
     if len(freeCols) == 0:
-        return board.getScore(isAIsTurn, draw = True)
+        return board.getScore(isAIsTurn, aiChipNum, draw = True)
     # Nível máximo de recursão atingido
     if depth == MAX_DEPTH:
-        return board.getScore(isAIsTurn)
+        return board.getScore(isAIsTurn, aiChipNum)
     #################################################
     isAIsTurn = not isAIsTurn   # Troca de jogador para simular a proxima jogada
     if isAIsTurn:   # MAX

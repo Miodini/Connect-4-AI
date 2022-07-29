@@ -121,7 +121,7 @@ class Board:
                     total += 1
         return total
 
-    def checkAlmostWin(self, chipNum):
+    def checkAlmostWin(self, aiChipNum):
         """Calcula os pontos em situação de quase vitória.
         Uma condição de quase vitória ocorre caso haja 3 fichas de mesmo cor em um grupo de 4 células na horizontal/vertical/horizontal.
         Quase vitórias para o jogador atual resultam em pontos positivos. Para o jogador adversário, resultam em pontos negativos.
@@ -129,7 +129,7 @@ class Board:
         
         Parameters
         ----------
-        chipNum: int
+        aiChipNum: int
             Número da ficha do jogador atual.
             
         Returns
@@ -140,82 +140,119 @@ class Board:
         # 3 elementos na horizontal
         score = 0
         for i in range(self.nRows):
-            chips = 0
+            aiChips = foeChips = 0
             for j in range(self.nCols - 3):
-                if self.cells[i][j] == chipNum:
-                    chips += 1
-                if self.cells[i][j+1] == chipNum:
-                    chips += 1
-                if self.cells[i][j+2] == chipNum:
-                    chips += 1
-                if self.cells[i][j+3] == chipNum:
-                    chips += 1
-                if chips == 3:
-                   # Analizando jogada da IA
-                    if chipNum == 2:
-                        score += 30
-                    # Analizando jogada do humano
+                if self.cells[i][j] != 0:
+                    if self.cells[i][j] == aiChipNum:
+                        aiChips += 1
                     else:
-                        score -= 30
+                        foeChips += 1
+                if self.cells[i][j+1] != 0:
+                    if self.cells[i][j+1] == aiChipNum:
+                        aiChips += 1
+                    else:
+                        foeChips += 1
+                if self.cells[i][j+2] != 0:
+                    if self.cells[i][j+2] == aiChipNum:
+                        aiChips += 1
+                    else:
+                        foeChips += 1
+                if self.cells[i][j+3] != 0:
+                    if self.cells[i][j+3] == aiChipNum:
+                        aiChips += 1
+                    else:
+                        foeChips += 1
+                if aiChips == 3:
+                    score += 30
+                elif foeChips == 3:
+                    score -= 30
 
         # 3 elementos na vertical
         for i in range(self.nRows - 3):
-            chips = 0
+            aiChips = foeChips = 0
             for j in range(self.nCols):
-                if self.cells[i][j] == chipNum:
-                    chips += 1
-                if self.cells[i+1][j] == chipNum:
-                    chips += 1
-                if self.cells[i+2][j] == chipNum:
-                    chips += 1
-                if self.cells[i+3][j] == chipNum:
-                    chips += 1
-                if chips == 3:
-                   # Analizando jogada da IA
-                    if chipNum == 2:
-                        score += 30
-                    # Analizando jogada do humano
+                if self.cells[i][j] != 0:
+                    if self.cells[i][j] == aiChipNum:
+                        aiChips += 1
                     else:
-                        score -= 30
+                        foeChips += 1
+                if self.cells[i+1][j] != 0:
+                    if self.cells[i+1][j] == aiChipNum:
+                        aiChips += 1
+                    else:
+                        foeChips += 1
+                if self.cells[i+2][j] != 0:
+                    if self.cells[i+2][j] == aiChipNum:
+                        aiChips += 1
+                    else:
+                        foeChips += 1
+                if self.cells[i+3][j] != 0:
+                    if self.cells[i+3][j] == aiChipNum:
+                        aiChips += 1
+                    else:
+                        foeChips += 1
+                if aiChips == 3:
+                    score += 30
+                elif foeChips == 3:
+                    score -= 30
+
 
         # 3 elementos na diagonal
         for i in range(self.nRows - 3):
-            chips = 0
+            aiChips = 0
             for j in range(self.nCols - 3):
-                if self.cells[i][j] == chipNum:
-                    chips += 1
-                if self.cells[i+1][j+1] == chipNum:
-                    chips += 1
-                if self.cells[i+2][j+2] == chipNum:
-                    chips += 1
-                if self.cells[i+3][j+3] == chipNum:
-                    chips += 1
-                if chips == 3:
-                   # Analizando jogada da IA
-                    if chipNum == 2:
-                        score += 30
-                    # Analizando jogada do humano
+                if self.cells[i][j] != 0:
+                    if self.cells[i][j] == aiChipNum:
+                        aiChips += 1
                     else:
-                        score -= 30
+                        foeChips += 1
+                if self.cells[i+1][j+1] != 0:
+                    if self.cells[i+1][j+1] == aiChipNum:
+                        aiChips += 1
+                    else:
+                        foeChips += 1
+                if self.cells[i+2][j+2] != 0:
+                    if self.cells[i+2][j+2] == aiChipNum:
+                        aiChips += 1
+                    else:
+                        foeChips += 1
+                if self.cells[i+3][j+3] != 0:
+                    if self.cells[i+3][j+3] == aiChipNum:
+                        aiChips += 1
+                    else:
+                        foeChips += 1
+                if aiChips == 3:
+                    score += 30
+                elif foeChips == 3:
+                    score -= 30
 
         for i in range(3, self.nRows):
-            chips = 0
+            aiChips = 0
             for j in range(self.nCols - 3):
-                if self.cells[i][j] == chipNum:
-                    chips += 1
-                if self.cells[i-1][j+1] == chipNum:
-                    chips += 1
-                if self.cells[i-2][j+2] == chipNum:
-                    chips += 1
-                if self.cells[i-3][j+3] == chipNum:
-                    chips += 1
-                if chips == 3:
-                   # Analizando jogada da IA
-                    if chipNum == 2:
-                        score += 30
-                    # Analizando jogada do humano
+                if self.cells[i][j] != 0:
+                    if self.cells[i][j] == aiChipNum:
+                        aiChips += 1
                     else:
-                        score -= 30              
+                        foeChips += 1
+                if self.cells[i-1][j+1] != 0:
+                    if self.cells[i-1][j+1] == aiChipNum:
+                        aiChips += 1
+                    else:
+                        foeChips += 1
+                if self.cells[i-2][j+2] != 0:
+                    if self.cells[i-2][j+2] == aiChipNum:
+                        aiChips += 1
+                    else:
+                        foeChips += 1
+                if self.cells[i-3][j+3] != 0:
+                    if self.cells[i-3][j+3] == aiChipNum:
+                        aiChips += 1
+                    else:
+                        foeChips += 1
+                if aiChips == 3:
+                    score += 30
+                elif foeChips == 3:
+                    score -= 30              
         return score
 
     def getFreeColumns(self):
@@ -232,13 +269,14 @@ class Board:
                 indexes.append(i)
         return indexes
 
-    def getScore(self, isAIsTurn: bool, *, draw: bool = False, win: bool = False):
+    def getScore(self, isAIsTurn, aiChipNum, *, draw = False, win = False):
         """Função de utilidade (medida do quão bem a AI foi na partida)
         Parameters
         ----------
         isAIsTurn : bool
             Se True, é a vez do jogador 1. Se False, é a vez do jogador 2 (para determinar se a IA venceu ou perdeu)
-
+        aiChipNum: int
+            Número da ficha do jogador atual.
         draw: bool, optional
             Se True, significa que houve empate na rodada.
         win: bool, optional
@@ -251,7 +289,7 @@ class Board:
         score = 0
         # Se empate
         if draw:
-            score += 100
+            score += 0
         # Se a IA ganhou
         elif isAIsTurn and win:
             score += 1000
@@ -259,7 +297,7 @@ class Board:
         elif not isAIsTurn and win:
             score -= 1000
         else:
-            score += self.checkAlmostWin(2 if isAIsTurn else 1)
+            score += self.checkAlmostWin(aiChipNum)
         
         score -= self.getTotalChips()     # Quanto mais turnos tiver passado, menor a pontuação
         return score

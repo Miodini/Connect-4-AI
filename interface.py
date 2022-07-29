@@ -157,7 +157,7 @@ class Game:
         while running:
             pg.display.update()
             if not self.player1Turn and not self.gameOver:
-                col = minimax(self.board, 2, 1)
+                col = minimax(self.board, 2)
                 self.dropChip(col)
             hovering = self.checkMouseCollision()
             for event in pg.event.get():
@@ -178,11 +178,11 @@ class Game:
         while running:
             pg.display.update()
             if self.player1Turn and not self.gameOver:
-                col = minimax(self.board, 1, 2)
+                col = minimax(self.board, 1)
                 self.dropChip(col)
             pg.display.update()
             if not self.player1Turn and not self.gameOver:
-                col = minimax(self.board, 2, 1)
+                col = minimax(self.board, 2)
                 self.dropChip(col)
             hovering = self.checkMouseCollision()
             for event in pg.event.get():
