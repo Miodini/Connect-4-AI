@@ -3,11 +3,30 @@ from board import Board
 import random
 
 MAX_DEPTH = 4
-def minimax(board: object, aiChipNum: int, otherChipNum: int):
+def minimax(board: object, aiChipNum: int):
+    """Função minimax com poda alfa e beta para cálculo da melhor jogada. 
+    Refere-se a raíz da árvore. Chama _minimaxRecursio() para cálculo do restante dos ramos.
+    
+    Parameters
+    ----------
+    board: object
+        Um objeto da classe Board representando o estado inicial do tabuleiro.
+    aiChipNum: 1|2
+        Número da ficha da IA (1 -> vermelho, 2 -> amarelo).
+        
+    Returns
+    -------
+    int
+        Coluna onde deve ser inserido a ficha para a melhor jogada calculada.
+    """
     # Raíz sempre será o jogador MAX
     score = -inf
     alpha = -inf
     beta = inf
+    if aiChipNum == 1:
+        otherChipNum = 2
+    else:
+        otherChipNum = 1
     freeCols = board.getFreeColumns()
    
     # Empate -> Interrompe a busca
@@ -30,7 +49,27 @@ def minimax(board: object, aiChipNum: int, otherChipNum: int):
     return bestPlay
 
 def _minimaxRecursion(board: object, depth: int, isAIsTurn: bool, alpha: float, beta: float, aiChipNum: int, otherChipNum: int):
-    ## Condições de parada
+    """Função recursiva para o cálculo da melhor jogada
+    
+    Parameters
+    ----------
+    board: object
+        Um objeto da classe Board representando o estado inicial do tabuleiro.
+    depth: int
+        Profundidade atual da árvore.
+    isAIsTurn: bool
+        True se o estado atual equivaler à jogada da IA (MAX).
+        O valor inverte no meio da função pois a jogada em si só começa após as verificações das condições de parada.
+    alpha: float
+        Valor de alfa da poda alfa-beta.
+    beta: float
+        Valor de beta da poda alfa-beta.
+    aiChipNum: 1|2
+        Número da ficha da IA (1 -> vermelho, 2 -> amarelo).
+    otherChipNum: 1|2
+        Número da ficha do adversário da IA (1 se aiChipNum == 2, 2 se aiChipNum == 1).
+    """
+    ## Condições de parada ##########################
     # Vitória de alguém -> Interrompe a busca
     if board.checkWinner():
         return board.getScore(isAIsTurn, win = True)
@@ -42,7 +81,7 @@ def _minimaxRecursion(board: object, depth: int, isAIsTurn: bool, alpha: float, 
     # Nível máximo de recursão atingido
     if depth == MAX_DEPTH:
         return board.getScore(isAIsTurn)
-
+    #################################################
     isAIsTurn = not isAIsTurn   # Troca de jogador para simular a proxima jogada
     if isAIsTurn:   # MAX
         score = -inf
